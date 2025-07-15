@@ -1,0 +1,466 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ApplyWise API",
+    "description": "API for managing job applications with authentication and authorization.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api/v1",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "operationId": "registerUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate user and return token",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Invalid email or password" }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "summary": "Initiate password reset process",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP sent successfully" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/auth/verify-otp": {
+      "post": {
+        "summary": "Verify OTP for password reset",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "otp": { "type": "string" }
+                },
+                "required": ["email", "otp"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP verified successfully" },
+          "400": { "description": "Invalid or expired OTP" }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "summary": "Reset user password",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "newPassword": { "type": "string", "format": "password" },
+                  "otp": { "type": "string" }
+                },
+                "required": ["email", "newPassword", "otp"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Password reset successfully" },
+          "400": { "description": "Invalid or expired OTP" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Log out user",
+        "tags": ["Auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Logout successfully" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Get list of users",
+        "tags": ["User"],
+        "description": "Retrieve a list of all users (Admin access required)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of users retrieved successfully"
+          },
+          "403": {
+            "description": "Forbidden: Admin access required"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new user",
+        "tags": ["User"],
+        "description": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get user by ID",
+        "description": "Retrieve details of a specific user",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["User"],
+        "summary": "Update user by ID",
+        "description": "Modify user details",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete user by ID",
+        "description": "Remove a user",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "summary": "Get all jobs",
+        "description": "Retrieve all jobs with optional filtering",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "description": "Items per page"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Job status filter"
+          },
+          {
+            "name": "flexibility",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Work flexibility filter"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Search term"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Jobs retrieved successfully." },
+          "400": { "description": "Invalid query parameters." }
+        }
+      },
+      "post": {
+        "summary": "Create a new job",
+        "description": "Add a new job to the database",
+        "tags": ["Jobs"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Job"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Job created successfully." },
+          "400": { "description": "Invalid job data." }
+        }
+      }
+    },
+    "/jobs/{id}": {
+      "get": {
+        "summary": "Get a single job",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Job retrieved successfully." },
+          "404": { "description": "Job not found." }
+        }
+      },
+      "put": {
+        "summary": "Update a job",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Job"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Job updated successfully." },
+          "404": { "description": "Job not found." }
+        }
+      },
+      "delete": {
+        "summary": "Delete a job",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Job deleted successfully." },
+          "404": { "description": "Job not found." }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterUser": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "email": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "required": ["username", "email", "password"]
+      },
+      "LoginUser": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "required": ["email", "password"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" },
+          "role": { "type": "string", "enum": ["admin", "user"] },
+          "mobile_number": { "type": "string" }
+        },
+        "required": ["first_name", "last_name", "email", "password"]
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "company": { "type": "string" },
+          "company_site": { "type": "string" },
+          "description": { "type": "string" },
+          "position": { "type": "string" },
+          "location": { "type": "string" },
+          "flexibility": {
+            "type": "string",
+            "enum": ["Remote", "Hybrid", "On-site"]
+          },
+          "status": { "type": "string" },
+          "salary": { "type": "string" },
+          "in_touch_person": { "type": "string" },
+          "platform": { "type": "string" },
+          "post_link": { "type": "string", "format": "uri" },
+          "applied_date": { "type": "string", "format": "date" },
+          "note": { "type": "string" },
+          "userId": { "type": "string" }
+        },
+        "required": ["title", "description"]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
