@@ -1,6 +1,6 @@
 # Node modules
 /node_modules
-/src/socket-server/node_modules
+/socket-server/node_modules
 
 # Build output
 /dist
