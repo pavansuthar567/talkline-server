@@ -1,5 +1,19 @@
+# Node modules
 /node_modules
+/src/socket-server/node_modules
 
+# Build output
+/dist
+
+# Vercel
 .vercel
 
-/dist
+# Environment files
+.env
+.env.*
+!.gitignore
+!.env.example
+!.env.sample
+
+# Explicitly ignore .env.production even if pattern is overridden
+.env.production

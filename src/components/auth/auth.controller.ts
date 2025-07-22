@@ -83,7 +83,7 @@ export default class AuthController {
       await EmailService.sendEmail(
         user.email,
         "Password Reset Request",
-        `Hello ${user.first_name} ${user.last_name},\n\nYour OTP for password reset is: ${otpCode}\n\nThis OTP is valid for 10 minutes.`
+        `Hello ${user.name},\n\nYour OTP for password reset is: ${otpCode}\n\nThis OTP is valid for 10 minutes.`
       );
 
       return createResponse(
