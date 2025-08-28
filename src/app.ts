@@ -1,11 +1,14 @@
-import express, { Application } from "express";
-import cors from "cors";
 import bodyParser from "body-parser";
-import initRoutes from "./routes";
+import cors from "cors";
+import express, { Application } from "express";
+import passport from "passport";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../docs/swagger.json";
-import passport from "passport";
 import passportConfig from "./config/passport";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { apiRateLimiter } from "./middleware/rateLimiter";
+import initRoutes from "./routes";
+import MonitoringService from "./services/monitoring";
 
 const app: Application = express();
 
@@ -25,6 +28,25 @@ app.use(
     parameterLimit: 50000,
   })
 );
+
+// Global rate limiting
+app.use(apiRateLimiter);
+
+// Request monitoring middleware
+app.use(async (req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    MonitoringService.trackRequest(
+      req.path,
+      req.method,
+      duration,
+      res.statusCode
+    );
+  });
+  next();
+});
+
 app.use(passport.initialize());
 passportConfig(passport);
 
@@ -33,5 +55,9 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes initialization
 initRoutes(app);
+
+// Error handling middleware (must be last)
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;
